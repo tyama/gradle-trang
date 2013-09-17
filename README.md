@@ -32,7 +32,7 @@ buildscript {
         mavenLocal()
     }
     dependencies {
-        classpath 'org.hsudbrock:gradle-trang-plugin:0.1-SNAPSHOT'
+        classpath 'org.hsudbrock:gradle-trang:0.1-SNAPSHOT'
     }
 }
 apply plugin: 'trang'
