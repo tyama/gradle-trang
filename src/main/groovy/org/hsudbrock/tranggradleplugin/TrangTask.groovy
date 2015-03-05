@@ -7,6 +7,8 @@ import org.apache.commons.io.FilenameUtils
 
 import com.thaiopensource.relaxng.translate.Driver
 
+import static groovy.io.FileType.FILES
+
 class TrangTask extends DefaultTask {
     String[] SUPPORTED_EXTENSIONS = ['rng', 'rnc', 'dtd', 'xsd', 'xml']
 	
@@ -21,15 +23,19 @@ class TrangTask extends DefaultTask {
 	
     @TaskAction
     def executeTrang() {
-		sourceDirectory.listFiles().each { inputFile ->
-			if (SUPPORTED_EXTENSIONS.contains(FilenameUtils.getExtension(inputFile.name))) {
-				File outputFile = new File(targetDirectory, FilenameUtils.removeExtension(inputFile.name) + '.' + targetExtension)
-				println "${inputFile.name}: Translating to ${outputFile.name}"
-				String[] trangParams = [inputFile.absolutePath, outputFile.absolutePath] as String[]
-				new Driver().run(trangParams)
-			} else {
-				println "${inputFile.name} : Extension '${FilenameUtils.getExtension(inputFile.name)}' is not supported, skipping."
-			}
-		}
+        sourceDirectory.eachFileRecurse(FILES) {file->
+            if(SUPPORTED_EXTENSIONS.contains(FilenameUtils.getExtension(file.name))) {
+                execute(file, (file.absolutePath-sourceDirectory.absolutePath - file.name).substring(1))
+            }
+        }
+    }
+
+    def execute(File inputFile, String path){
+        File targetDir = path?new File(targetDirectory,path):targetDirectory
+        if(!targetDir.exists()) targetDir.mkdirs()
+        File outputFile = new File(targetDir, FilenameUtils.removeExtension(inputFile.name) + '.' + targetExtension)
+        //println "${inputFile.name}: Translating to ${outputFile.absolutePath}"
+        String[] trangParams = [inputFile.absolutePath, outputFile.absolutePath] as String[]
+        new Driver().run(trangParams)
     }
 }
